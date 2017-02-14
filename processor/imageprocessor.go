@@ -3,9 +3,13 @@ package processor
 import (
 	"crypto/sha1"
 	"strconv"
+	"image/png"
+	"bytes"
+	"fmt"
 
 	g "github.com/manuviswam/imagecache/gateway"
 	c "github.com/manuviswam/imagecache/cache"
+	r "github.com/nfnt/resize"
 )
 
 type ImageProcessor struct {
@@ -29,6 +33,7 @@ func (p *ImageProcessor) GetImageWithSize(url string, width, height int) []byte 
 		img = p.ImageCache.Get(key)
 	} else {
 		img = p.Gateway.Get(url)
+		p.ImageCache.Add(key, img)
 	}
 
 	resizedImg := resize(img, width, height)
@@ -37,6 +42,16 @@ func (p *ImageProcessor) GetImageWithSize(url string, width, height int) []byte 
 	return resizedImg
 }
 
-func resize(img []byte, widh, height int) []byte {
-	return img
+func resize(img []byte, width, height int) []byte {
+	reader := bytes.NewReader(img)
+	decodedImage, err := png.Decode(reader)
+	if err != nil {
+		fmt.Println("Error decoding image ", err)
+		return nil
+	}
+
+	resizedImage := r.Resize(uint(width), uint(height), decodedImage, r.Lanczos3)
+	outBuffer := new(bytes.Buffer)
+	png.Encode(outBuffer, resizedImage)
+	return outBuffer.Bytes()
 }
