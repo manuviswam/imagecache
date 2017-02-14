@@ -10,6 +10,7 @@ type ImageGateway struct {
 }
 
 func (g *ImageGateway) Get(url string) []byte {
+	fmt.Println("Making request to ", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error fetching image ", err)
